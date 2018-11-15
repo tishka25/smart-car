@@ -1,14 +1,7 @@
-/*
-    Based on Neil Kolban example for IDF: https://github.com/nkolban/esp32-snippets/blob/master/cpp_utils/tests/BLE%20Tests/SampleServer.cpp
-    Ported to Arduino ESP32 by Evandro Copercini
-*/
 #include <Arduino.h>
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
-
-// See the following for generating UUIDs:
-// https://www.uuidgenerator.net/
 
 // #define CAR_SERVICE "aefe8d5e-3afd-4698-8bdb-cc8211963b98"
 // #define CHARACTERISTIC_UUID "dc07e333-1e98-4054-a408-eb9b667c85e9"
