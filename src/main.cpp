@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <SmartCar.hpp>
+#include <BLE.hpp>
 
-SmartCar car;
+BLE car;
 
 void setup(){
   Serial.begin(115200);
@@ -9,6 +9,9 @@ void setup(){
 }
 
 void loop(){
-  Serial.println(car.getValues().data());
+  for(auto v : car.getValues()){
+    Serial.println(v.data());
+  }
+
   delay(500);
 }
