@@ -44,6 +44,8 @@ void BLE::begin(){
     //set default value for the windows and start the service
     windows[WINDOW_LEFT]->setValue(&WINDOW_LEFT_DEFAULT , sizeof(&WINDOW_LEFT_DEFAULT));
     windows[WINDOW_RIGHT]->setValue(&WINDOW_RIGHT_DEFAULT , sizeof(&WINDOW_RIGHT_DEFAULT));
+    ignition->setValue(&IGNITION_OFF , sizeof(&IGNITION_OFF));
+    
     carService->start();
     //
 
