@@ -5,6 +5,8 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include <BLE2902.h>
+
 #include <string>
 #include <ctime>
 #include <algorithm>
@@ -33,6 +35,7 @@ using namespace std;
 
 class Log;
 class BLE;
+class ServerCallbacks;
 
 
 //Gloval variable 
@@ -45,7 +48,9 @@ class BLE{
     BLECharacteristic *manufacturerName;
     BLEService *carService;
     BLECharacteristic *windows[2];
+    BLEDescriptor *windowsDesc;
     BLECharacteristic *ignition;
+    BLEDescriptor *ignitionDesc;
 
     
     //Log characteristic (part of the car service)
@@ -66,7 +71,7 @@ class BLE{
     uint8_t WINDOW_LEFT_DEFAULT = 0x50;
     uint8_t WINDOW_LEFT_UP = 0x51;
     uint8_t WINDOW_LEFT_DOWN = 0x52;
-    uint8_t WINDOW_RIGHT_DEFAULT = 0x53;
+    uint8_t WINDOW_RIGHT_DEFAULT = 0x50;
     uint8_t WINDOW_RIGHT_UP = 0x54;
     uint8_t WINDOW_RIGHT_DOWN = 0x55;
     //
@@ -78,6 +83,7 @@ class BLE{
 
     public:
     
+    bool isConnected = false;
 
     BLE();
     BLE(std::string deviceName);
@@ -87,15 +93,19 @@ class BLE{
     void readLog();
     void writeLog(string s);
     vector<string> getValues();
+    void notifyAll();
 };
 
 
 class Log : public BLECharacteristicCallbacks{
     private:
     std::time_t t = std::time(nullptr);
+    BLE *c;
 
     public:
-    Log(){}
+    Log(BLE *c){
+        this->c = c;
+    }
     void onRead(BLECharacteristic *pCharacteristic);
     void onWrite(BLECharacteristic *pCharacteristic);
 
@@ -112,6 +122,23 @@ class Log : public BLECharacteristicCallbacks{
             output.push_back(lut[c & 15]);
         }
         return output;
+    }
+};
+
+
+class ServerCallbacks : public BLEServerCallbacks{
+    public:
+    BLE *c;
+    ServerCallbacks(BLE *c){
+        this->c = c;
+    }
+    void onConnect(BLEServer *pServer){
+        c->isConnected = true;
+        Serial.println(c->isConnected );
+    }
+    void onDisconnect(BLEServer* pServer) {
+      c->isConnected = false;
+      Serial.println(c->isConnected );
     }
 };
 

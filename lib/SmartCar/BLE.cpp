@@ -2,16 +2,34 @@
 
 using namespace std;
 
+
+
+
+
+
+
+
+
+
 BLE::BLE(){}
 BLE::BLE(std::string deviceName){
     this->deviceName = deviceName;
 }
 
 void BLE::begin(){
+
+
+    //Create the descriptors
+    // windowsDesc = new BLEDescriptor((uint16_t)0x2910);
+    // ignitionDesc = new BLEDescriptor((uint16_t)0x2911);
+    //
+
+
     //start the ble device with name "BLE"
     BLEDevice::init(deviceName);
     pServer = BLEDevice::createServer();
-    pCallback = new Log();
+    pServer->setCallbacks(new ServerCallbacks(this));
+    pCallback = new Log(this);
 
     manufacturerService = pServer->createService(MANUFACTURER_SERVICE_UUID);
     manufacturerName = manufacturerService->createCharacteristic(MANUFACTURER_NAME_UUID , BLECharacteristic::PROPERTY_READ);
@@ -21,20 +39,24 @@ void BLE::begin(){
     //Create the chararteristics for that service 
         //WINDOW LEFT
         windows[WINDOW_LEFT] = carService->createCharacteristic(WINDOW_LEFT_CHARACTERISTIC_UUID , 
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+        windows[WINDOW_LEFT]->addDescriptor(new BLE2902());
         windows[WINDOW_LEFT]->setCallbacks(pCallback);
         //WINDOW RIGHT
         windows[WINDOW_RIGHT] = carService->createCharacteristic(WINDOW_RIGHT_CHARACTERISTIC_UUID , 
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+        windows[WINDOW_RIGHT]->addDescriptor(new BLE2902());
         windows[WINDOW_RIGHT]->setCallbacks(pCallback);
         //IGNITION
         ignition = carService->createCharacteristic(IGNITION_CHARACTERISTIC_UUID , 
-        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+        ignition->addDescriptor(new BLE2902());
         ignition->setCallbacks(pCallback);
     //
 
     BLE::logCharacteristic = carService->createCharacteristic(LOG_CHARACTERISTIC_UUID ,
     BLECharacteristic::PROPERTY_READ);
+    logCharacteristic->addDescriptor(new BLE2902());
     logCharacteristic->setCallbacks(pCallback);
 
     //Set the default value
@@ -73,35 +95,48 @@ vector<string> BLE::getValues(){
 
     return buff;
 }
+void BLE::notifyAll(){
+    if(isConnected){
+        windows[WINDOW_LEFT]->notify();
+        windows[WINDOW_RIGHT]->notify();
+        ignition->notify();
+    }
+ }
 
 
 
 
 
 void Log::onRead(BLECharacteristic *pCharacteristic){
-    string log_uuid = LOG_CHARACTERISTIC_UUID;
-    std::transform(log_uuid.begin(), log_uuid.end(), log_uuid.begin(), ::tolower);
+    // string window = WINDOW_LEFT_CHARACTERISTIC_UUID;
+    // std::transform(window.begin(), window.end(), window.begin(), ::tolower);
 
-    if(pCharacteristic->getUUID().toString() == log_uuid){
-        car.readLog();
-    }
+    // if(pCharacteristic->getUUID().toString() == window && car.isConnected){
+    //     pCharacteristic->notify();
+    //     Serial.print("Notified ");
+    //     Serial.println(pCharacteristic->getValue().data());
+    // }
 }
 void Log::onWrite(BLECharacteristic *pCharacteristic){
-    string currValue = pCharacteristic->getValue();
-    //Time
-    string message("Date: ");
-    message += asctime(localtime(&t));
-    message.resize(message.size()-1);
-    //
-    message +=" ; ";
-    //Characteristic modified
-    message +=" Characteristic: ";
-    message+= pCharacteristic->getUUID().toString();
-    //
-    //Changed to value
-    message +=" Changed value: ";
-    message+= string_to_hex(currValue);
-    car.writeLog(message);
+    // string currValue = pCharacteristic->getValue();
+    // //Time
+    // string message("Date: ");
+    // message += asctime(localtime(&t));
+    // message.resize(message.size()-1);
+    // //
+    // message +=" ; ";
+    // //Characteristic modified
+    // message +=" Characteristic: ";
+    // message+= pCharacteristic->getUUID().toString();
+    // //
+    // //Changed to value
+    // message +=" Changed value: ";
+    // message+= string_to_hex(currValue);
+    // pCharacteristic->notify();
+    // Serial.print("Notified ");
+    // Serial.println(pCharacteristic->getValue().data());
+    // car.writeLog(message);
+    Serial.print(string_to_hex(pCharacteristic->getValue()).data());
+    Serial.println();
 }
-
 

@@ -9,9 +9,10 @@ void setup(){
 }
 
 void loop(){
-  for(auto v : car.getValues()){
-    Serial.println(v.data());
-  }
+  // for(auto v : car.getValues()){
+  //   Serial.println(v.data());
+  // }
+  car.notifyAll();
 
   delay(500);
 }
