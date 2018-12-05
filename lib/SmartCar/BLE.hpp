@@ -33,6 +33,7 @@ using namespace std;
 #define WINDOW_LEFT 0
 #define WINDOW_RIGHT 1
 
+//TODO make it a variable
 #define PIN_CODE "pticata"
 
 //
