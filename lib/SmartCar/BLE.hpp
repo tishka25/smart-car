@@ -24,16 +24,20 @@ using namespace std;
 #define CAR_SERVICE_UUID "ca227c6b-d187-4aaf-b330-37144d84b02c"
 #define WINDOW_LEFT_CHARACTERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b"
 #define WINDOW_RIGHT_CHARACTERISTIC_UUID "96cc6576-b9b0-443b-b8e6-546bbd20d374"
-#define IGNITION_CHARACTERISTIC_UUID "e8d26993-a6b5-4402-bcff-0e44be7081cb"
+#define IGNITION_CHARACTERISTIC_UUID "4ad1bbf1-b3e6-4239-a3bb-520624ee1329"
 #define LOG_CHARACTERISTIC_UUID "9c64b5fd-9d4c-49fe-99b0-b9cf4f091026"
+#define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
 //
 
 //Constants
 #define WINDOW_LEFT 0
 #define WINDOW_RIGHT 1
+
+#define PIN_CODE "pticata"
+
 //
 
-class Log;
+class CharacteristicCallback;
 class BLE;
 class ServerCallbacks;
 
@@ -48,14 +52,13 @@ class BLE{
     BLECharacteristic *manufacturerName;
     BLEService *carService;
     BLECharacteristic *windows[2];
-    BLEDescriptor *windowsDesc;
     BLECharacteristic *ignition;
-    BLEDescriptor *ignitionDesc;
+    BLECharacteristic *pin;
 
     
-    //Log characteristic (part of the car service)
+    //CharacteristicCallback characteristic (part of the car service)
     BLECharacteristic *logCharacteristic;
-    Log *pCallback;
+    CharacteristicCallback *pCallback;
     //
 
     BLEAdvertising *pAdvertising;
@@ -68,17 +71,16 @@ class BLE{
     //
 
     //Window commands
-    uint8_t WINDOW_LEFT_DEFAULT = 0x50;
     uint8_t WINDOW_LEFT_UP = 0x51;
     uint8_t WINDOW_LEFT_DOWN = 0x52;
-    uint8_t WINDOW_RIGHT_DEFAULT = 0x50;
     uint8_t WINDOW_RIGHT_UP = 0x54;
     uint8_t WINDOW_RIGHT_DOWN = 0x55;
     //
     //Ignition
     uint8_t IGNITION_ON = 0x60;
-    uint8_t IGNITION_OFF = 0x61;
     uint8_t IGNITION_START = 0x62;
+    //Defailt state
+    uint8_t STANDARD = 0x50;
     //
 
     public:
@@ -92,18 +94,24 @@ class BLE{
 
     void readLog();
     void writeLog(string s);
+    //Debug
     vector<string> getValues();
+    string getPinCode();
+    void clearPinCode();
+
+    void setDefaultAll();
     void notifyAll();
 };
 
 
-class Log : public BLECharacteristicCallbacks{
+class CharacteristicCallback : public BLECharacteristicCallbacks{
     private:
     std::time_t t = std::time(nullptr);
+    //BLE car reference
     BLE *c;
 
     public:
-    Log(BLE *c){
+    CharacteristicCallback(BLE *c){
         this->c = c;
     }
     void onRead(BLECharacteristic *pCharacteristic);
@@ -138,6 +146,9 @@ class ServerCallbacks : public BLEServerCallbacks{
     }
     void onDisconnect(BLEServer* pServer) {
       c->isConnected = false;
+      //Clear the current PIN_CODE 
+      c->clearPinCode();
+      //
       Serial.println(c->isConnected );
     }
 };

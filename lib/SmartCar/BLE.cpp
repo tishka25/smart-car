@@ -4,32 +4,17 @@ using namespace std;
 
 
 
-
-
-
-
-
-
-
 BLE::BLE(){}
 BLE::BLE(std::string deviceName){
     this->deviceName = deviceName;
 }
 
 void BLE::begin(){
-
-
-    //Create the descriptors
-    // windowsDesc = new BLEDescriptor((uint16_t)0x2910);
-    // ignitionDesc = new BLEDescriptor((uint16_t)0x2911);
-    //
-
-
     //start the ble device with name "BLE"
     BLEDevice::init(deviceName);
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks(this));
-    pCallback = new Log(this);
+    pCallback = new CharacteristicCallback(this);
 
     manufacturerService = pServer->createService(MANUFACTURER_SERVICE_UUID);
     manufacturerName = manufacturerService->createCharacteristic(MANUFACTURER_NAME_UUID , BLECharacteristic::PROPERTY_READ);
@@ -52,6 +37,11 @@ void BLE::begin(){
         BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
         ignition->addDescriptor(new BLE2902());
         ignition->setCallbacks(pCallback);
+        //PIN CODE 
+        pin = carService->createCharacteristic(PIN_CODE_CHARACRERISTIC_UUID ,
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+        pin->addDescriptor(new BLE2902());
+        pin->setCallbacks(pCallback);
     //
 
     BLE::logCharacteristic = carService->createCharacteristic(LOG_CHARACTERISTIC_UUID ,
@@ -64,9 +54,7 @@ void BLE::begin(){
     manufacturerService->start();
 
     //set default value for the windows and start the service
-    windows[WINDOW_LEFT]->setValue(&WINDOW_LEFT_DEFAULT , sizeof(&WINDOW_LEFT_DEFAULT));
-    windows[WINDOW_RIGHT]->setValue(&WINDOW_RIGHT_DEFAULT , sizeof(&WINDOW_RIGHT_DEFAULT));
-    ignition->setValue(&IGNITION_OFF , sizeof(&IGNITION_OFF));
+    BLE::setDefaultAll();
     
     carService->start();
     //
@@ -95,6 +83,17 @@ vector<string> BLE::getValues(){
 
     return buff;
 }
+string BLE::getPinCode(){
+    return pin->getValue();
+}
+void BLE::clearPinCode(){
+    pin->setValue("0");
+}
+void BLE::setDefaultAll(){
+    windows[WINDOW_LEFT]->setValue(&STANDARD , sizeof(&STANDARD));
+    windows[WINDOW_RIGHT]->setValue(&STANDARD , sizeof(&STANDARD));
+    ignition->setValue(&STANDARD , sizeof(&STANDARD));
+}
 void BLE::notifyAll(){
     if(isConnected){
         windows[WINDOW_LEFT]->notify();
@@ -107,7 +106,7 @@ void BLE::notifyAll(){
 
 
 
-void Log::onRead(BLECharacteristic *pCharacteristic){
+void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic){
     // string window = WINDOW_LEFT_CHARACTERISTIC_UUID;
     // std::transform(window.begin(), window.end(), window.begin(), ::tolower);
 
@@ -117,7 +116,7 @@ void Log::onRead(BLECharacteristic *pCharacteristic){
     //     Serial.println(pCharacteristic->getValue().data());
     // }
 }
-void Log::onWrite(BLECharacteristic *pCharacteristic){
+void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic){
     // string currValue = pCharacteristic->getValue();
     // //Time
     // string message("Date: ");
@@ -136,6 +135,11 @@ void Log::onWrite(BLECharacteristic *pCharacteristic){
     // Serial.print("Notified ");
     // Serial.println(pCharacteristic->getValue().data());
     // car.writeLog(message);
+    string pin = c->getPinCode();
+
+    if(pin != PIN_CODE)
+        c->setDefaultAll();
+
     Serial.print(string_to_hex(pCharacteristic->getValue()).data());
     Serial.println();
 }
