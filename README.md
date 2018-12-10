@@ -1,7 +1,8 @@
 # smart-car
 
 
-## I have added this code snippet in BLEServer.cpp
+## Modifying the ESP32 Arduino library
+### I have added this code snippet in BLEServer.cpp in order to have a disconnecting functionalities
    ```c++
 
   /**
