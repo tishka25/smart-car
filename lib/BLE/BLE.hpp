@@ -7,6 +7,7 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 
+#include <FreeRTOS.h>
 #include <string>
 #include <ctime>
 #include <algorithm>
@@ -33,8 +34,8 @@ using namespace std;
 #define WINDOW_LEFT 0
 #define WINDOW_RIGHT 1
 
-//TODO make it a variable
-#define PIN_CODE "pticata"
+// TODO make it a variable
+// #define PIN_CODE "pticata"
 
 //
 
@@ -43,8 +44,6 @@ class BLE;
 class ServerCallbacks;
 
 
-//Gloval variable 
-extern BLE car;
 
 class BLE{
     private:
@@ -54,7 +53,6 @@ class BLE{
     BLEService *carService;
     BLECharacteristic *windows[2];
     BLECharacteristic *ignition;
-    BLECharacteristic *pin;
 
     
     //CharacteristicCallback characteristic (part of the car service)
@@ -82,11 +80,19 @@ class BLE{
     uint8_t IGNITION_START = 0x62;
     //Defailt state
     uint8_t STANDARD = 0x50;
+    //Pin code commands
+    // string BLOCKED = "<blocked>";
     //
 
     public:
-    
     bool isConnected = false;
+    
+    struct{
+        BLECharacteristic *characteristic;
+        string PIN_CODE = "pticata";
+        byte failedEntries = 0;
+        string BLOCKED = "<blocked>";
+    }pin;
 
     BLE();
     BLE(std::string deviceName);
@@ -102,6 +108,10 @@ class BLE{
 
     void setDefaultAll();
     void notifyAll();
+
+    static void blockedTimeout(void *p);
+    void block();
+
 };
 
 
@@ -111,21 +121,23 @@ class CharacteristicCallback : public BLECharacteristicCallbacks{
     //BLE car reference
     BLE *c;
 
-    public:
-    CharacteristicCallback(BLE *c){
+  public:
+    CharacteristicCallback(BLE *c)
+    {
         this->c = c;
     }
     void onRead(BLECharacteristic *pCharacteristic);
     void onWrite(BLECharacteristic *pCharacteristic);
-
     
-    std::string string_to_hex(const std::string& input){
-        static const char* const lut = "0123456789ABCDEF";
+    std::string string_to_hex(const std::string &input)
+    {
+        static const char *const lut = "0123456789ABCDEF";
         size_t len = input.length();
 
         std::string output;
         output.reserve(2 * len);
-        for (size_t i = 0; i < len; ++i){
+        for (size_t i = 0; i < len; ++i)
+        {
             const unsigned char c = input[i];
             output.push_back(lut[c >> 4]);
             output.push_back(lut[c & 15]);
@@ -134,23 +146,28 @@ class CharacteristicCallback : public BLECharacteristicCallbacks{
     }
 };
 
-
-class ServerCallbacks : public BLEServerCallbacks{
-    public:
+class ServerCallbacks : public BLEServerCallbacks
+{
+  public:
     BLE *c;
-    ServerCallbacks(BLE *c){
+    ServerCallbacks(BLE *c)
+    {
         this->c = c;
     }
-    void onConnect(BLEServer *pServer){
+    void onConnect(BLEServer *pServer)
+    {
         c->isConnected = true;
-        Serial.println(c->isConnected );
+        Serial.println(c->isConnected);
     }
-    void onDisconnect(BLEServer* pServer) {
-      c->isConnected = false;
-      //Clear the current PIN_CODE 
-      c->clearPinCode();
-      //
-      Serial.println(c->isConnected );
+    void onDisconnect(BLEServer *pServer)
+    {
+        c->isConnected = false;
+        //Clear the current PIN_CODE
+        c->clearPinCode();
+        //Clear the failed attempts
+        c->pin.failedEntries = 0;
+        //
+        Serial.println(c->isConnected);
     }
 };
 
