@@ -1,7 +1,8 @@
 # smart-car
 
 
-##I have added this code snippet in BLEServer.cpp
+## I have added this code snippet in BLEServer.cpp
+   ```c++
 
   /**
    * @brief Disconnect Client
@@ -17,3 +18,4 @@
     }
     ESP_LOGD(LOG_TAG, "<< disconnectClient()");
   } // disconnectClient
+  ```
