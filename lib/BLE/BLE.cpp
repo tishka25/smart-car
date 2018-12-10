@@ -139,6 +139,7 @@ void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic)
             if (c->pin.failedEntries > 2)
                 c->block();
             c->pin.failedEntries++;
+            c->pin.characteristic->setValue(c->pin.INCORRECT);
             Serial.print("Failed entries: ");
             Serial.println(c->pin.failedEntries);
         }
@@ -174,6 +175,6 @@ void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic)
 
     //
 
-    // Serial.print(string_to_hex(pCharacteristic->getValue()).data());
-    // Serial.println();
+    Serial.print(string_to_hex(pCharacteristic->getValue()).data());
+    Serial.println();
 }

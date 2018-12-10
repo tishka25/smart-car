@@ -80,8 +80,6 @@ class BLE{
     uint8_t IGNITION_START = 0x62;
     //Defailt state
     uint8_t STANDARD = 0x50;
-    //Pin code commands
-    // string BLOCKED = "<blocked>";
     //
 
     public:
@@ -91,7 +89,7 @@ class BLE{
         BLECharacteristic *characteristic;
         string PIN_CODE = "pticata";
         byte failedEntries = 0;
-        string BLOCKED = "<blocked>";
+        string INCORRECT = "<incorrect>";
     }pin;
 
     BLE();
