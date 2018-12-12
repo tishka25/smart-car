@@ -27,28 +27,40 @@ void BLE::begin()
     //Create the chararteristics for that service
     //WINDOW LEFT
     windows[WINDOW_LEFT] = carService->createCharacteristic(WINDOW_LEFT_CHARACTERISTIC_UUID,
-                                                            BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
     windows[WINDOW_LEFT]->addDescriptor(new BLE2902());
     windows[WINDOW_LEFT]->setCallbacks(pCallback);
     //WINDOW RIGHT
     windows[WINDOW_RIGHT] = carService->createCharacteristic(WINDOW_RIGHT_CHARACTERISTIC_UUID,
-                                                             BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
     windows[WINDOW_RIGHT]->addDescriptor(new BLE2902());
     windows[WINDOW_RIGHT]->setCallbacks(pCallback);
     //IGNITION
     ignition = carService->createCharacteristic(IGNITION_CHARACTERISTIC_UUID,
-                                                BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
     ignition->addDescriptor(new BLE2902());
     ignition->setCallbacks(pCallback);
+    //LOCK CONTROL
+    lockControl = carService->createCharacteristic(LOCK_CONTROL_CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
+    lockControl->addDescriptor(new BLE2902());
+    lockControl->setCallbacks(pCallback);
+    //
+    //CLOCK
+    rtc_clock = carService->createCharacteristic(CLOCK_CHARACTERISTIC_UUID,
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+    rtc_clock->addDescriptor(new BLE2902());
+    rtc_clock->setCallbacks(pCallback);
+    //
     //PIN CODE
     pin.characteristic = carService->createCharacteristic(PIN_CODE_CHARACRERISTIC_UUID,
-                                                          BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
     pin.characteristic->addDescriptor(new BLE2902());
     pin.characteristic->setCallbacks(pCallback);
     //
 
     BLE::logCharacteristic = carService->createCharacteristic(LOG_CHARACTERISTIC_UUID,
-                                                              BLECharacteristic::PROPERTY_READ);
+    BLECharacteristic::PROPERTY_READ);
     logCharacteristic->addDescriptor(new BLE2902());
     logCharacteristic->setCallbacks(pCallback);
 
@@ -103,6 +115,7 @@ void BLE::setDefaultAll()
     windows[WINDOW_LEFT]->setValue(&STANDARD, sizeof(&STANDARD));
     windows[WINDOW_RIGHT]->setValue(&STANDARD, sizeof(&STANDARD));
     ignition->setValue(&STANDARD, sizeof(&STANDARD));
+    lockControl->setValue(&LOCK , sizeof(&LOCK));
 }
 void BLE::notifyAll()
 {
@@ -111,6 +124,7 @@ void BLE::notifyAll()
         windows[WINDOW_LEFT]->notify();
         windows[WINDOW_RIGHT]->notify();
         ignition->notify();
+        lockControl->notify();
     }
 }
 
@@ -131,49 +145,27 @@ void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic)
 void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic)
 {
     string buffUUID = pCharacteristic->getUUID().toString();
-    if (buffUUID == PIN_CODE_CHARACRERISTIC_UUID)
-    {
+    // if (buffUUID == PIN_CODE_CHARACRERISTIC_UUID)
+    // {
         if (c->getPinCode() != c->pin.PIN_CODE)
         {
             c->setDefaultAll();
-            if (c->pin.failedEntries > 2)
-                c->block();
             c->pin.failedEntries++;
-            c->pin.characteristic->setValue(c->pin.INCORRECT);
             Serial.print("Failed entries: ");
             Serial.println(c->pin.failedEntries);
+            c->block();
+
         }
         else if (c->getPinCode() == c->pin.PIN_CODE)
         {
             Serial.println("Password Correct!");
+            //Clear the failed attempts
+            c->pin.failedEntries = 0;
+            //
         }
-    }
-    // string currValue = pCharacteristic->getValue();
-    // //Time
-    // string message("Date: ");
-    // message += asctime(localtime(&t));
-    // message.resize(message.size()-1);
-    // //
-    // message +=" ; ";
-    // //Characteristic modified
-    // message +=" Characteristic: ";
-    // message+= pCharacteristic->getUUID().toString();
-    // //
-    // //Changed to value
-    // message +=" Changed value: ";
-    // message+= string_to_hex(currValue);
-    // pCharacteristic->notify();
-    // Serial.print("Notified ");
-    // Serial.println(pCharacteristic->getValue().data());
-    // car.writeLog(message);
-
-    //Old pin entry
-    // string pin = c->getPinCode();
-
-    // if(pin != PIN_CODE)
-    //     c->setDefaultAll();
-
-    //
+    // }
+    if (c->pin.failedEntries >= c->pin.MAX_FAILED_ENTRIES)
+        c->block();
 
     Serial.print(string_to_hex(pCharacteristic->getValue()).data());
     Serial.println();

@@ -26,6 +26,9 @@ using namespace std;
 #define WINDOW_LEFT_CHARACTERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b"
 #define WINDOW_RIGHT_CHARACTERISTIC_UUID "96cc6576-b9b0-443b-b8e6-546bbd20d374"
 #define IGNITION_CHARACTERISTIC_UUID "4ad1bbf1-b3e6-4239-a3bb-520624ee1329"
+#define LOCK_CONTROL_CHARACTERISTIC_UUID "aface04c-7963-43ec-a172-bedeb1b49570"
+#define CLOCK_CHARACTERISTIC_UUID "6bbdd85f-c398-4075-abad-62d3ba40916a"
+
 #define LOG_CHARACTERISTIC_UUID "9c64b5fd-9d4c-49fe-99b0-b9cf4f091026"
 #define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
 //
@@ -53,6 +56,8 @@ class BLE{
     BLEService *carService;
     BLECharacteristic *windows[2];
     BLECharacteristic *ignition;
+    BLECharacteristic *lockControl;
+    BLECharacteristic *rtc_clock;
 
     
     //CharacteristicCallback characteristic (part of the car service)
@@ -69,6 +74,9 @@ class BLE{
     string _log = "";
     //
 
+    //Defailt state
+    uint8_t STANDARD = 0x50;
+    //
     //Window commands
     uint8_t WINDOW_LEFT_UP = 0x51;
     uint8_t WINDOW_LEFT_DOWN = 0x52;
@@ -77,9 +85,11 @@ class BLE{
     //
     //Ignition
     uint8_t IGNITION_ON = 0x60;
+    uint8_t IGNITION_OFF = STANDARD;
     uint8_t IGNITION_START = 0x62;
-    //Defailt state
-    uint8_t STANDARD = 0x50;
+    //Lock/unlock
+    uint8_t LOCK = STANDARD;
+    uint8_t UNLOCK = 0x81;
     //
 
     public:
@@ -89,7 +99,7 @@ class BLE{
         BLECharacteristic *characteristic;
         string PIN_CODE = "pticata";
         byte failedEntries = 0;
-        string INCORRECT = "<incorrect>";
+        byte MAX_FAILED_ENTRIES = 3;
     }pin;
 
     BLE();
@@ -162,8 +172,6 @@ class ServerCallbacks : public BLEServerCallbacks
         c->isConnected = false;
         //Clear the current PIN_CODE
         c->clearPinCode();
-        //Clear the failed attempts
-        c->pin.failedEntries = 0;
         //
         Serial.println(c->isConnected);
     }
