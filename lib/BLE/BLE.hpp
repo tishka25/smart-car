@@ -66,13 +66,7 @@ class BLE{
 
     BLEAdvertising *pAdvertising;
 
-    std::string deviceName = "Smart Car";
-    
-    //TODO 
-    //Write this to flash memory
-    string _log = "";
-    //
-
+    string deviceName = "Smart Car";
     //Defailt state
     uint8_t STANDARD = 0x50;
     //
@@ -88,15 +82,15 @@ class BLE{
     uint8_t IGNITION_START = 0x62;
     //Lock/unlock
     uint8_t LOCK = STANDARD;
-    uint8_t UNLOCK = 0x81;
+    uint8_t UNLOCK = 0x75;
     //
 
     public:
     bool isConnected = false;
     
     struct{
-        BLECharacteristic *characteristic;
-        string PIN_CODE = "pticata";
+        string PIN_CODE = "penis";
+        byte MAX_PASSWORD_LENGTH = 5;
         byte failedEntries = 0;
         byte MAX_FAILED_ENTRIES = 3;
     }pin;
@@ -112,9 +106,15 @@ class BLE{
     vector<string> getValues();
     string getPinCode();
     void clearPinCode();
-    string getGetState()
+    string getState(void);
+    string getState(uint8_t c);
+    string getIgnitionState(void);
+    string getWindowStates(void);
+    string getCentralLockState(void);
+    string getClockState(void);
 
-    void setDefaultAll();
+
+    void setDefault();
     void notifyAll();
 
     static void blockedTimeout(void *p);

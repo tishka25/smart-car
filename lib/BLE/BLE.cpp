@@ -12,17 +12,12 @@ void BLE::begin()
 {
     //start the ble device with name "BLE"
     BLEDevice::init(deviceName);
-    //Change power level for RELEASE
+    //TOO Change power level for RELEASE
     BLEDevice::setPower(ESP_PWR_LVL_P7);
-    // BLEDevice::setMTU(500);
-    //
+
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks(this));
     pCallback = new CharacteristicCallback(this);
-
-
-    // manufacturerService = pServer->createService(MANUFACTURER_SERVICE_UUID);
-    // manufacturerName = manufacturerService->createCharacteristic(MANUFACTURER_NAME_UUID, BLECharacteristic::PROPERTY_READ);
     //Create the Car service
     carService = pServer->createService(CAR_SERVICE_UUID);
     //TEST max char value
@@ -32,7 +27,7 @@ void BLE::begin()
     pCharacteristic->setCallbacks(pCallback);
 
 
-    pCharacteristic->setValue("1532");
+    BLE::setDefault();
 
     carService->start();
     // //
@@ -42,18 +37,33 @@ void BLE::begin()
     pAdvertising->start();
 }
 
+
+
+string BLE::getIgnitionState(){
+    return pCharacteristic->getValue().substr(0,1);
+}
+string BLE::getWindowStates(){
+    return pCharacteristic->getValue().substr(1,2);
+}
+string BLE::getCentralLockState(){
+    return pCharacteristic->getValue().substr(3,1);
+}
 string BLE::getPinCode()
 {
-    return pin.characteristic->getValue();
-}
-void BLE::clearPinCode()
-{
-    pin.characteristic->setValue("0");
+    return pCharacteristic->getValue().substr(4,pin.MAX_PASSWORD_LENGTH);
 }
 
-void BLE::setDefaultAll()
+void BLE::clearPinCode()
 {
-    
+    string buff = pCharacteristic->getValue().replace(4,pin.MAX_PASSWORD_LENGTH , "0");
+
+}
+void BLE::setDefault()
+{
+    uint8_t data[] = {
+        STANDARD , STANDARD , STANDARD , STANDARD , '0'
+    };
+    pCharacteristic->setValue(data , sizeof(data));
 }
 void BLE::notifyAll()
 {
@@ -79,31 +89,25 @@ void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic)
 }
 void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic)
 {
-    // string buffUUID = pCharacteristic->getUUID().toString();
-    // // if (buffUUID == PIN_CODE_CHARACRERISTIC_UUID)
-    // // {
-    //     if (c->getPinCode() != c->pin.PIN_CODE)
-    //     {
-    //         c->setDefaultAll();
-    //         c->pin.failedEntries++;
-    //         Serial.print("Failed entries: ");
-    //         Serial.println(c->pin.failedEntries);
-    //         c->block();
+    string pass = c->getPinCode();
+    if(pass != c->pin.PIN_CODE){
+        c->setDefault();
+        c->pin.failedEntries++;
+        Serial.print("Failed entries: ");
+        Serial.println(c->pin.failedEntries);
+        c->block();
+    }else if (pass == c->pin.PIN_CODE){
+        Serial.println("Password Correct!");
+        //Clear the failed attempts
+        c->pin.failedEntries = 0;
+        //
+    }
 
-    //     }
-    //     else if (c->getPinCode() == c->pin.PIN_CODE)
-    //     {
-    //         Serial.println("Password Correct!");
-    //         //Clear the failed attempts
-    //         c->pin.failedEntries = 0;
-    //         //
-    //     }
-    // // }
-    // if (c->pin.failedEntries >= c->pin.MAX_FAILED_ENTRIES)
-    //     c->block();
+    if (c->pin.failedEntries >= c->pin.MAX_FAILED_ENTRIES)
+        c->block();
+        
 
-    Serial.print((pCharacteristic->getValue()).data());
-    Serial.println();
+    Serial.println(pCharacteristic->getValue().data());
 }
 
 void ClockCallback::onRead(BLECharacteristic *pCharacteristic)
