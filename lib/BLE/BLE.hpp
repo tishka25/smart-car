@@ -37,11 +37,12 @@ using namespace std;
 //
 
 //Constants
-#define WINDOW_LEFT 0
-#define WINDOW_RIGHT 1
-#define IGNITION 2
-#define LOCK 3
-#define 
+#define WINDOW_LEFT     0
+#define WINDOW_RIGHT    1
+#define IGNITION        2
+#define CENTRAL_LOCK    3
+#define CLOCK           4
+#define PASSWORD        5
 
 // TODO make it a variable
 // #define PIN_CODE "pticata"
