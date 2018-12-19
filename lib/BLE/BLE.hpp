@@ -17,11 +17,6 @@
 
 using namespace std;
 
-// //Manufacturer service and characteristics
-// #define MANUFACTURER_SERVICE_UUID "0000180a-0000-1000-8000-00805F9B34FB"
-// #define MANUFACTURER_NAME_UUID "00002a29-0000-1000-8000-00805F9B34FB"
-// #define MANUFACTURER_NAME "Teodor Stanishev"
-// //
 
 // //Car service and characteristics
 #define CAR_SERVICE_UUID "ca227c6b-d187-4aaf-b330-37144d84b02c"
@@ -32,12 +27,12 @@ using namespace std;
 //
 
 //Constants
-#define WINDOW_LEFT     0
-#define WINDOW_RIGHT    1
-#define IGNITION        2
-#define CENTRAL_LOCK    3
-#define CLOCK           4
-#define PASSWORD        5
+#define SET_TIME_ON_RTC 1
+#define WINDOW_RIGHT    2
+#define IGNITION        3
+#define CENTRAL_LOCK    4
+#define CLOCK           5
+#define PASSWORD        6
 
 // TODO make it a variable
 // #define PIN_CODE "pticata"
@@ -90,6 +85,7 @@ class BLE{
         byte MAX_FAILED_ENTRIES = 3;
     }pin;
 
+
     BLE();
     BLE(std::string deviceName);
 
@@ -99,6 +95,7 @@ class BLE{
     void writeLog(string s);
     //Debug
     vector<string> getValues();
+
     string getPinCode();
     void clearPinCode();
     string getState(void);
@@ -107,6 +104,8 @@ class BLE{
     string getWindowStates(void);
     string getCentralLockState(void);
     string getDate(void);
+    uint8_t getDateCommand(void);
+    void setDateCommand(string c);
 
     BLEServer* getServer();
     BLECharacteristic* getMainCharacteristic();

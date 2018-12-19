@@ -8,6 +8,9 @@ BLE::BLE(std::string deviceName)
     this->deviceName = deviceName;
 }
 
+/**
+ * @brief Used to initialize the BLE with all the services and characteristic
+ */
 void BLE::begin()
 {
     //start the ble device with name "BLE"
@@ -38,12 +41,12 @@ void BLE::begin()
     // BLE::setDefault();
 
     //Initial setup
-    uint8_t data[] = {
+    uint8_t commands[] = {
         STANDARD , STANDARD , STANDARD , STANDARD
     };
-    string buff(data , data + sizeof(data));
-    buff+="0000000000";
-    pCharacteristic->setValue(buff);
+    string dateBuff(commands , commands + sizeof(commands));
+    dateBuff+="00000000000"; //11 elements
+    pCharacteristic->setValue(dateBuff);
     //
     
     //
@@ -56,29 +59,60 @@ void BLE::begin()
 }
 
 
-
+/**
+ * @brief Returns the current Ignition state
+ * @return string
+ */
 string BLE::getIgnitionState(){
     return pCharacteristic->getValue().substr(0,1);
 }
+/**
+ * @brief Returns the current Window states
+ * @return string
+ */
 string BLE::getWindowStates(){
     return pCharacteristic->getValue().substr(1,2);
 }
+/**
+ * @brief Returns the current Lock State
+ * @return string
+ */
 string BLE::getCentralLockState(){
     return pCharacteristic->getValue().substr(3,1);
 }
+/**
+ * @brief Returns the current password entry from the BLE characteristic
+ * @return string
+ */
 string BLE::getPinCode()
 {
     return pPassword->getValue();
 }
+
+/**
+ * @brief Returns a string representation of the seconds since Epoch
+ * @return char[1-10] seconds
+ */
 string BLE::getDate(){
     return pCharacteristic->getValue().substr(4,10);
 }
-
-
+/**
+ * @brief Returns the command for the Date/Time
+ * @return uint8_t command
+ */
+uint8_t BLE::getDateCommand(){
+    return atoi(pCharacteristic->getValue().substr(14,1).c_str());
+}
+/**
+ * @brief Used to clear the current password entry
+ */
 void BLE::clearPinCode()
 {
     pPassword->setValue("0");
 }
+/**
+ * @brief Set the default states 
+ */
 void BLE::setDefault()
 {
     uint8_t data[] = {
@@ -89,6 +123,13 @@ void BLE::setDefault()
     pCharacteristic->setValue(buff);
     BLE::clearPinCode();
 }
+void BLE::setDateCommand(string c){
+    string buff = pCharacteristic->getValue().replace(10,1,c);
+    pCharacteristic->setValue(buff);
+}
+/**
+ * @brief Overloaded function to notify the BLE client for all the states
+ */
 void BLE::notifyAll()
 {
     if (isConnected)

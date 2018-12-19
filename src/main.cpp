@@ -11,10 +11,11 @@ void setup(){
 }
 
 void loop(){
-  // for(auto v : car.getValues()){
-  //   Serial.println(v.data());
-  // }
-  car.notifyAll();
 
-  delay(500);
+  car.notifyAll();
+  // time_t currTime = time(nullptr);
+  // Serial.print("Current time is: ");
+  // Serial.println(ctime(&currTime));
+
+  delay(1000);
 }
