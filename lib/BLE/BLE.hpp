@@ -7,7 +7,7 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include <sys/time.h>
-
+#include <Security.hpp>
 
 #include <FreeRTOS.h>
 #include <string>
@@ -25,13 +25,8 @@ using namespace std;
 
 // //Car service and characteristics
 #define CAR_SERVICE_UUID "ca227c6b-d187-4aaf-b330-37144d84b02c"
-// #define WINDOW_LEFT_CHARACTERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b"
-// #define WINDOW_RIGHT_CHARACTERISTIC_UUID "96cc6576-b9b0-443b-b8e6-546bbd20d374"
-// #define IGNITION_CHARACTERISTIC_UUID "4ad1bbf1-b3e6-4239-a3bb-520624ee1329"
-// #define LOCK_CONTROL_CHARACTERISTIC_UUID "aface04c-7963-43ec-a172-bedeb1b49570"
-// #define CLOCK_CHARACTERISTIC_UUID "6bbdd85f-c398-4075-abad-62d3ba40916a"
 
-// #define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
+#define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
 #define CHARACRERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b" 
 
 //
@@ -52,7 +47,7 @@ using namespace std;
 class CharacteristicCallback;
 class BLE;
 class ServerCallbacks;
-class ClockCallback;
+class Security;
 
 
 
@@ -61,10 +56,13 @@ class BLE{
     BLEServer *pServer;
     BLEService *carService;
     BLECharacteristic *pCharacteristic;
-    CharacteristicCallback *pCallback;
-    
-
+    BLECharacteristic *pPassword;
     BLEAdvertising *pAdvertising;
+
+
+
+    Security *pSecurity;
+    CharacteristicCallback *pCallback;
 
     string deviceName = "Smart Car";
     //Defailt state
@@ -111,9 +109,9 @@ class BLE{
     string getIgnitionState(void);
     string getWindowStates(void);
     string getCentralLockState(void);
-    string getClockState(void);
+    string getDate(void);
 
-
+    BLECharacteristic* getCharacteristic();
     void setDefault();
     void notifyAll();
 
@@ -122,29 +120,17 @@ class BLE{
 
 };
 
-
-class ClockCallback : public BLECharacteristicCallbacks{
-private:
-std::time_t t = std::time(nullptr);
-BLE *c;
-public:
-    ClockCallback(BLE *c){
-        this->c = c;
-    }
-    void onRead(BLECharacteristic *pCharacteristic);
-    void onWrite(BLECharacteristic *pCharacteristic);
-};
-
-
 class CharacteristicCallback : public BLECharacteristicCallbacks{
     private:
     //BLE car reference
     BLE *c;
+    Security *s;
 
   public:
-    CharacteristicCallback(BLE *c)
+    CharacteristicCallback(BLE *c , Security *s)
     {
         this->c = c;
+        this->s = s;
     }
     void onRead(BLECharacteristic *pCharacteristic);
     void onWrite(BLECharacteristic *pCharacteristic);
