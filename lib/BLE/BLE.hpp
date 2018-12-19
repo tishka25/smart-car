@@ -7,7 +7,7 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include <sys/time.h>
-#include <Security.hpp>
+#include <CharacteristicCallback.hpp>
 
 #include <FreeRTOS.h>
 #include <string>
@@ -47,7 +47,7 @@ using namespace std;
 class CharacteristicCallback;
 class BLE;
 class ServerCallbacks;
-class Security;
+
 
 
 
@@ -59,9 +59,6 @@ class BLE{
     BLECharacteristic *pPassword;
     BLEAdvertising *pAdvertising;
 
-
-
-    Security *pSecurity;
     CharacteristicCallback *pCallback;
 
     string deviceName = "Smart Car";
@@ -111,7 +108,8 @@ class BLE{
     string getCentralLockState(void);
     string getDate(void);
 
-    BLECharacteristic* getCharacteristic();
+    BLEServer* getServer();
+    BLECharacteristic* getMainCharacteristic();
     void setDefault();
     void notifyAll();
 
@@ -120,37 +118,6 @@ class BLE{
 
 };
 
-class CharacteristicCallback : public BLECharacteristicCallbacks{
-    private:
-    //BLE car reference
-    BLE *c;
-    Security *s;
-
-  public:
-    CharacteristicCallback(BLE *c , Security *s)
-    {
-        this->c = c;
-        this->s = s;
-    }
-    void onRead(BLECharacteristic *pCharacteristic);
-    void onWrite(BLECharacteristic *pCharacteristic);
-    
-    std::string string_to_hex(const std::string &input)
-    {
-        static const char *const lut = "0123456789ABCDEF";
-        size_t len = input.length();
-
-        std::string output;
-        output.reserve(2 * len);
-        for (size_t i = 0; i < len; ++i)
-        {
-            const unsigned char c = input[i];
-            output.push_back(lut[c >> 4]);
-            output.push_back(lut[c & 15]);
-        }
-        return output;
-    }
-};
 
 class ServerCallbacks : public BLEServerCallbacks
 {

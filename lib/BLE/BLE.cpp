@@ -18,8 +18,7 @@ void BLE::begin()
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks(this));
     
-    pSecurity = new Security(pServer , this);
-    pCallback = new CharacteristicCallback(this , pSecurity);
+    pCallback = new CharacteristicCallback(this);
 
     //Create the Car service
     carService = pServer->createService(CAR_SERVICE_UUID);
@@ -27,19 +26,29 @@ void BLE::begin()
     pCharacteristic = carService->createCharacteristic(CHARACRERISTIC_UUID,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
     pCharacteristic->addDescriptor(new BLE2902());
-    pCharacteristic->setCallbacks(pSecurity);
+    pCharacteristic->setCallbacks(pCallback);
 
     pPassword = carService->createCharacteristic(PIN_CODE_CHARACRERISTIC_UUID ,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
     pPassword->addDescriptor(new BLE2902());
-    pPassword->setCallbacks(pSecurity);
+    pPassword->setCallbacks(pCallback);
 
 
 
-    BLE::setDefault();
+    // BLE::setDefault();
 
+    //Initial setup
+    uint8_t data[] = {
+        STANDARD , STANDARD , STANDARD , STANDARD
+    };
+    string buff(data , data + sizeof(data));
+    buff+="0000000000";
+    pCharacteristic->setValue(buff);
+    //
+    
+    //
     carService->start();
-    // //
+    //
 
     //Start advertising so you can search for it
     pAdvertising = pServer->getAdvertising();
@@ -61,10 +70,13 @@ string BLE::getPinCode()
 {
     return pPassword->getValue();
 }
+string BLE::getDate(){
+    return pCharacteristic->getValue().substr(4,10);
+}
+
 
 void BLE::clearPinCode()
 {
-    // string buff = pCharacteristic->getValue().replace(4,pin.MAX_PASSWORD_LENGTH , "0");
     pPassword->setValue("0");
 }
 void BLE::setDefault()
@@ -73,8 +85,8 @@ void BLE::setDefault()
         STANDARD , STANDARD , STANDARD , STANDARD
     };
     string buff(data , data + sizeof(data));
-    buff+="0000000000";
-    pCharacteristic->setValue(data , sizeof(data));
+    buff+=BLE::getDate();
+    pCharacteristic->setValue(buff);
     BLE::clearPinCode();
 }
 void BLE::notifyAll()
@@ -85,19 +97,9 @@ void BLE::notifyAll()
     }
 }
 
-BLECharacteristic* BLE::getCharacteristic(){
+BLEServer* BLE::getServer(){
+    return pServer;
+}
+BLECharacteristic* BLE::getMainCharacteristic(){
     return pCharacteristic;
-}
-
-
-
-
-
-void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic)
-{
-}
-void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic)
-{
-    // s->passwordHandler();
-    Serial.println(pCharacteristic->getValue().data());
 }
