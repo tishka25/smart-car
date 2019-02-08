@@ -18,6 +18,7 @@
 
 class BLE;
 
+using namespace std;
 
 class CharacteristicCallback : public BLECharacteristicCallbacks{
     private:
@@ -51,6 +52,9 @@ class CharacteristicCallback : public BLECharacteristicCallbacks{
             output.push_back(lut[c & 15]);
         }
         return output;
+    }
+    std::string converter(uint8_t *str){
+        return std::string((char *)str);
     }
 };
 

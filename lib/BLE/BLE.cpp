@@ -70,8 +70,23 @@ string BLE::getIgnitionState(){
  * @brief Returns the current Window states
  * @return string
  */
-string BLE::getWindowStates(){
+string BLE::getWindowsStates(){
     return pCharacteristic->getValue().substr(1,2);
+    
+}
+/**
+ * @brief Returns the current Left Window state
+ * @return string
+ */
+string BLE::getWindowLeftState(){
+    return pCharacteristic->getValue().substr(1,1);
+}
+/**
+ * @brief Returns the current Right Window state
+ * @return string
+ */
+string BLE::getWindowRightState(){
+    return pCharacteristic->getValue().substr(2,1);
 }
 /**
  * @brief Returns the current Lock State

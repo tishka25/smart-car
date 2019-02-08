@@ -15,7 +15,7 @@ void CharacteristicCallback::passwordHandler(){
         Serial.println(c->pin.failedEntries);
         pServer->disconnectClient();
     }else if (pass == c->pin.PIN_CODE){
-        Serial.println("Password Correct!");
+        // Serial.println("Password Correct!");
         //Clear the failed attempts
         c->pin.failedEntries = 0;
         //
@@ -58,5 +58,12 @@ void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic){
     if(pCharacteristic->getUUID().toString()!= PIN_CODE_CHARACRERISTIC_UUID){
         dateHandler();
     }
-    Serial.println(pCharacteristic->getValue().data());
+    // Serial.println("All chars are: " + String(pCharacteristic->getValue().data()));
+    if(c->getWindowLeftState().data()[0] == c->WINDOW_LEFT_UP){
+        Serial.println("WINDOW LEFT IS UP");
+        digitalWrite(21 , HIGH);
+    }else{
+        digitalWrite(21 , LOW);
+    }
 }
+

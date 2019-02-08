@@ -24,6 +24,8 @@ using namespace std;
 #define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
 #define CHARACRERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b" 
 
+#define LEFT (char*)0x51
+
 //
 
 //Constants
@@ -56,7 +58,9 @@ class BLE{
 
     CharacteristicCallback *pCallback;
 
-    string deviceName = "Smart Car";
+    string deviceName = "Smart Car Pesho";
+
+    public:
     //Defailt state
     uint8_t STANDARD = 0x50;
     //
@@ -75,7 +79,6 @@ class BLE{
     uint8_t UNLOCK = 0x75;
     //
 
-    public:
     bool isConnected = false;
     
     struct{
@@ -98,10 +101,10 @@ class BLE{
 
     string getPinCode();
     void clearPinCode();
-    string getState(void);
-    string getState(uint8_t c);
     string getIgnitionState(void);
-    string getWindowStates(void);
+    string getWindowsStates(void);
+    string getWindowLeftState(void);
+    string getWindowRightState(void);
     string getCentralLockState(void);
     string getDate(void);
     uint8_t getDateCommand(void);

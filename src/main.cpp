@@ -6,16 +6,18 @@ BLE car;
 
 void setup(){
   Serial.begin(115200);
+  pinMode(21 , OUTPUT);
+
   WiFi.mode(WIFI_OFF);
   car.begin();
 }
 
 void loop(){
-
   car.notifyAll();
-  // time_t currTime = time(nullptr);
-  // Serial.print("Current time is: ");
-  // Serial.println(ctime(&currTime));
-
-  delay(1000);
+  // Serial.println("Left Window state: " + String(car.getWindowLeftState().data()));
+  // (car.getWindowLeftState()) ? 
+  // 
+  delay(200);
+  // digitalWrite(21 , LOW);
+  // delay(200);
 }
