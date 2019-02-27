@@ -25,7 +25,6 @@ using namespace std;
 #define CHARACRERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b" 
 
 #define LEFT (char*)0x51
-
 //
 
 //Constants
@@ -36,10 +35,6 @@ using namespace std;
 #define CLOCK           5
 #define PASSWORD        6
 
-// TODO make it a variable
-// #define PIN_CODE "pticata"
-
-//
 
 class CharacteristicCallback;
 class BLE;
@@ -58,7 +53,7 @@ class BLE{
 
     CharacteristicCallback *pCallback;
 
-    string deviceName = "Smart Car Pesho";
+    string deviceName = "Smart Car";
 
     public:
     //Defailt state
@@ -143,5 +138,4 @@ class ServerCallbacks : public BLEServerCallbacks
         Serial.println(c->isConnected);
     }
 };
-
 #endif
