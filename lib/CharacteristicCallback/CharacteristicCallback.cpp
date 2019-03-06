@@ -51,9 +51,9 @@ void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic){
 
 }
 void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic){
-    // if(pCharacteristic->getUUID().toString() == PIN_CODE_CHARACRERISTIC_UUID){
-    CharacteristicCallback::passwordHandler();
-    // }
+    if(pCharacteristic->getUUID().toString() == PIN_CODE_CHARACRERISTIC_UUID){
+        CharacteristicCallback::passwordHandler();
+    }
 
     if(pCharacteristic->getUUID().toString()!= PIN_CODE_CHARACRERISTIC_UUID){
         dateHandler();
@@ -66,4 +66,3 @@ void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic){
         digitalWrite(21 , LOW);
     }
 }
-

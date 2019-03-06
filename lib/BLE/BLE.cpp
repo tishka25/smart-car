@@ -13,7 +13,7 @@ BLE::BLE(std::string deviceName)
  */
 void BLE::begin()
 {
-    //start the ble device with name "BLE"
+    //Start the ble device with name "BLE"
     BLEDevice::init(deviceName);
     //TOO Change power level for RELEASE
     BLEDevice::setPower(ESP_PWR_LVL_P7);

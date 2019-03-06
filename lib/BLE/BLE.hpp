@@ -53,7 +53,7 @@ class BLE{
 
     CharacteristicCallback *pCallback;
 
-    string deviceName = "Smart Car";
+    string deviceName = "Shte ti eba maikata, glupak";
 
     public:
     //Defailt state
