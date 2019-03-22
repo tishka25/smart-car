@@ -77,7 +77,7 @@ class BLE{
     bool isConnected = false;
     
     struct{
-        string PIN_CODE = "penis";
+        string PIN_CODE = "ElsysIsTheBest";
         byte MAX_PASSWORD_LENGTH = 5;
         byte failedEntries = 0;
         byte MAX_FAILED_ENTRIES = 3;
