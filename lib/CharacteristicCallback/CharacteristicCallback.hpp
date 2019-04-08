@@ -35,6 +35,7 @@ class CharacteristicCallback : public BLECharacteristicCallbacks{
     void onRead(BLECharacteristic *pCharacteristic);
     void onWrite(BLECharacteristic *pCharacteristic);
     
+    void gpioStateHandler();
     void passwordHandler();
     void dateHandler();
 

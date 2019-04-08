@@ -23,8 +23,17 @@ using namespace std;
 
 #define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
 #define CHARACRERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b" 
+//
 
-#define LEFT (char*)0x51
+//GPIO pins
+#define WINDOW_UP_PIN      (uint8_t)4
+#define WINDOW_DOWN_PIN    (uint8_t)5
+// #define WINDOW_RIGHT_UP_PIN    (uint8_t)12
+// #define WINDOW_RIGHT_DOWN_PIN   (uint8_t)14
+#define IGNITION_PIN            15
+// #define CENTRAL_LOCKING_LOCK_PIN    16
+#define CENTRAL_LOCKING_TRIGG_PIN  12
+#define STARTER_MOTOR_PIN       17
 //
 
 //Constants
@@ -53,22 +62,26 @@ class BLE{
 
     CharacteristicCallback *pCallback;
 
-    string deviceName = "Shte ti eba maikata, glupak";
+    string deviceName = "Smart Car";
+
+    uint8_t pins[5] = {WINDOW_UP_PIN , WINDOW_DOWN_PIN ,
+    IGNITION_PIN , CENTRAL_LOCKING_TRIGG_PIN , STARTER_MOTOR_PIN};
 
     public:
     //Defailt state
     uint8_t STANDARD = 0x50;
     //
     //Window commands
-    uint8_t WINDOW_LEFT_UP = 0x51;
-    uint8_t WINDOW_LEFT_DOWN = 0x52;
-    uint8_t WINDOW_RIGHT_UP = 0x54;
-    uint8_t WINDOW_RIGHT_DOWN = 0x55;
+    uint8_t WINDOW_UP = 0x51;
+    uint8_t WINDOW_DOWN = 0x52;
+    // uint8_t WINDOW_RIGHT_UP = 0x54;
+    // uint8_t WINDOW_RIGHT_DOWN = 0x55;
     //
     //Ignition
     uint8_t IGNITION_ON = 0x60;
     uint8_t IGNITION_OFF = STANDARD;
-    uint8_t IGNITION_START = 0x62;
+    uint8_t IGNITION_STARTER_ON = 0x62;
+    uint8_t IGNITION_STARTER_OFF = 0x63;
     //Lock/unlock
     uint8_t LOCK = STANDARD;
     uint8_t UNLOCK = 0x75;
@@ -77,8 +90,7 @@ class BLE{
     bool isConnected = false;
     
     struct{
-        string PIN_CODE = "ElsysIsTheBest";
-        byte MAX_PASSWORD_LENGTH = 5;
+        string PIN_CODE = "elsys";
         byte failedEntries = 0;
         byte MAX_FAILED_ENTRIES = 3;
     }pin;
@@ -88,6 +100,7 @@ class BLE{
     BLE(std::string deviceName);
 
     void begin();
+    void initializePins();
 
     void readLog();
     void writeLog(string s);
@@ -97,9 +110,10 @@ class BLE{
     string getPinCode();
     void clearPinCode();
     string getIgnitionState(void);
-    string getWindowsStates(void);
-    string getWindowLeftState(void);
-    string getWindowRightState(void);
+    // string getWindowsStates(void);
+    string getWindowState(void);
+    // string getWindowLeftState(void);
+    // string getWindowRightState(void);
     string getCentralLockState(void);
     string getDate(void);
     uint8_t getDateCommand(void);

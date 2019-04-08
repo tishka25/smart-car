@@ -13,9 +13,10 @@ BLE::BLE(std::string deviceName)
  */
 void BLE::begin()
 {
+    BLE::initializePins();
     //Start the ble device with name "BLE"
     BLEDevice::init(deviceName);
-    //TOO Change power level for RELEASE
+    //TODO Change power level for RELEASE
     BLEDevice::setPower(ESP_PWR_LVL_P7);
 
     pServer = BLEDevice::createServer();
@@ -31,11 +32,11 @@ void BLE::begin()
     pCharacteristic->addDescriptor(new BLE2902());
     pCharacteristic->setCallbacks(pCallback);
 
+    //TODO change the permission for RELEASE
     pPassword = carService->createCharacteristic(PIN_CODE_CHARACRERISTIC_UUID ,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
     pPassword->addDescriptor(new BLE2902());
     pPassword->setCallbacks(pCallback);
-
 
 
     // BLE::setDefault();
@@ -58,6 +59,19 @@ void BLE::begin()
     pAdvertising->start();
 }
 
+/**
+ * @brief Initializes the pins , calls pinMode() on every GPIO that is going to be used
+ */ 
+void BLE::initializePins(){
+
+    for(int i=0; i<6;i++){
+        pinMode(pins[i] , OUTPUT);
+        digitalWrite(pins[i] , LOW);
+    }
+}
+
+
+
 
 /**
  * @brief Returns the current Ignition state
@@ -70,30 +84,30 @@ string BLE::getIgnitionState(){
  * @brief Returns the current Window states
  * @return string
  */
-string BLE::getWindowsStates(){
-    return pCharacteristic->getValue().substr(1,2);
+// string BLE::getWindowsStates(){
+//     return pCharacteristic->getValue().substr(1,2);
     
-}
+// }
 /**
- * @brief Returns the current Left Window state
+ * @brief Returns the current Window state
  * @return string
  */
-string BLE::getWindowLeftState(){
+string BLE::getWindowState(){
     return pCharacteristic->getValue().substr(1,1);
 }
 /**
  * @brief Returns the current Right Window state
  * @return string
  */
-string BLE::getWindowRightState(){
-    return pCharacteristic->getValue().substr(2,1);
-}
+// string BLE::getWindowRightState(){
+//     return pCharacteristic->getValue().substr(2,1);
+// }
 /**
  * @brief Returns the current Lock State
  * @return string
  */
 string BLE::getCentralLockState(){
-    return pCharacteristic->getValue().substr(3,1);
+    return pCharacteristic->getValue().substr(2,1);
 }
 /**
  * @brief Returns the current password entry from the BLE characteristic
