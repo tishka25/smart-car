@@ -34,6 +34,12 @@ void CharacteristicCallback::gpioStateHandler(){
     }else if(c->getIgnitionState().data()[0] == c->IGNITION_STARTER_OFF){
         digitalWrite(STARTER_MOTOR_PIN , LOW);
     }
+    //Trunk
+    if(c->getTrunkState().data()[0] == c->OPEN_TRUNK){
+        digitalWrite(OPEN_TRUNK_PIN , HIGH);
+    }else if(c->getTrunkState().data()[0] == c->STANDARD){
+        digitalWrite(OPEN_TRUNK_PIN , LOW);
+    }
 }
 
 void CharacteristicCallback::passwordHandler(){
