@@ -64,15 +64,11 @@ void BLE::begin()
  */ 
 void BLE::initializePins(){
 
-    for(int i=0; i<6;i++){
-        pinMode(pins[i] , OUTPUT);
-        digitalWrite(pins[i] , LOW);
+    for(auto pin : pins){
+        pinMode(pin , OUTPUT);
+        digitalWrite(pin , LOW);
     }
 }
-
-
-
-
 /**
  * @brief Returns the current Ignition state
  * @return string
@@ -81,27 +77,12 @@ string BLE::getIgnitionState(){
     return pCharacteristic->getValue().substr(0,1);
 }
 /**
- * @brief Returns the current Window states
- * @return string
- */
-// string BLE::getWindowsStates(){
-//     return pCharacteristic->getValue().substr(1,2);
-    
-// }
-/**
  * @brief Returns the current Window state
  * @return string
  */
 string BLE::getWindowState(){
     return pCharacteristic->getValue().substr(1,1);
 }
-/**
- * @brief Returns the current Right Window state
- * @return string
- */
-// string BLE::getWindowRightState(){
-//     return pCharacteristic->getValue().substr(2,1);
-// }
 /**
  * @brief Returns the current Lock State
  * @return string
@@ -110,20 +91,26 @@ string BLE::getCentralLockState(){
     return pCharacteristic->getValue().substr(2,1);
 }
 /**
+ * @brief Returns the current Trunk state
+ * @return string
+ */
+string BLE::getTrunkState(){
+    return pCharacteristic->getValue().substr(3,1);
+}
+/**
+ * @brief Returns a string representation of the seconds since Epoch
+ * @return char[10] seconds
+ */
+string BLE::getDate(){
+    return pCharacteristic->getValue().substr(4,10);
+}
+/**
  * @brief Returns the current password entry from the BLE characteristic
  * @return string
  */
 string BLE::getPinCode()
 {
     return pPassword->getValue();
-}
-
-/**
- * @brief Returns a string representation of the seconds since Epoch
- * @return char[1-10] seconds
- */
-string BLE::getDate(){
-    return pCharacteristic->getValue().substr(4,10);
 }
 /**
  * @brief Returns the command for the Date/Time

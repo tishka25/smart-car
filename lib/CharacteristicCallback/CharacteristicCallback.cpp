@@ -15,24 +15,7 @@ void CharacteristicCallback::gpioStateHandler(){
     }else{
         digitalWrite(WINDOW_DOWN_PIN , LOW);
     }
-    // //Window right up
-    // if(c->getWindowRightState().data()[0] == c->WINDOW_RIGHT_UP){
-    //     digitalWrite(WINDOW_RIGHT_UP_PIN , HIGH);
-    // }else{
-    //     digitalWrite(WINDOW_RIGHT_UP_PIN , LOW);
-    // }
-    // //Window right down
-    // if(c->getWindowRightState().data()[0] == c->WINDOW_RIGHT_DOWN){
-    //     digitalWrite(WINDOW_RIGHT_DOWN_PIN , HIGH);
-    // }else{
-    //     digitalWrite(WINDOW_RIGHT_DOWN_PIN , LOW);
-    // }
     //Central locking
-    // if(c->getCentralLockState().data()[0] == c->LOCK){
-    //     digitalWrite(CENTRAL_LOCKING_LOCK_PIN , HIGH);
-    // }else{
-    //     digitalWrite(CENTRAL_LOCKING_LOCK_PIN , LOW);
-    // }
     if(c->getCentralLockState().data()[0] == c->UNLOCK){
         digitalWrite(CENTRAL_LOCKING_TRIGG_PIN , HIGH);
     }else{
@@ -47,6 +30,7 @@ void CharacteristicCallback::gpioStateHandler(){
     //Starter
     if(c->getIgnitionState().data()[0] == c->IGNITION_STARTER_ON){
         digitalWrite(STARTER_MOTOR_PIN , HIGH);
+        // digitalWrite(IGNITION_PIN , HIGH);
     }else if(c->getIgnitionState().data()[0] == c->IGNITION_STARTER_OFF){
         digitalWrite(STARTER_MOTOR_PIN , LOW);
     }
@@ -75,8 +59,6 @@ void CharacteristicCallback::passwordHandler(){
 
 
 void CharacteristicCallback::dateHandler(){
-    // BLECharacteristic *pCharacteristic = c->getMainCharacteristic();
-    // string bleTime = pCharacteristic->getValue().substr(4,10);
     uint8_t param = c->getDateCommand();
     string _time = c->getDate();
 

@@ -30,6 +30,7 @@ using namespace std;
 #define WINDOW_DOWN_PIN    (uint8_t)5
 // #define WINDOW_RIGHT_UP_PIN    (uint8_t)12
 // #define WINDOW_RIGHT_DOWN_PIN   (uint8_t)14
+#define OPEN_TRUNK_PIN          14
 #define IGNITION_PIN            15
 // #define CENTRAL_LOCKING_LOCK_PIN    16
 #define CENTRAL_LOCKING_TRIGG_PIN  12
@@ -65,7 +66,7 @@ class BLE{
     string deviceName = "Smart Car";
 
     uint8_t pins[5] = {WINDOW_UP_PIN , WINDOW_DOWN_PIN ,
-    IGNITION_PIN , CENTRAL_LOCKING_TRIGG_PIN , STARTER_MOTOR_PIN};
+    IGNITION_PIN , CENTRAL_LOCKING_TRIGG_PIN , STARTER_MOTOR_PIN , OPEN_TRUNK_PIN};
 
     public:
     //Defailt state
@@ -85,6 +86,9 @@ class BLE{
     //Lock/unlock
     uint8_t LOCK = STANDARD;
     uint8_t UNLOCK = 0x75;
+    //
+    //Open trunk
+    uint8_t OPEN_TRUNK = 0x77;
     //
 
     bool isConnected = false;
@@ -114,6 +118,7 @@ class BLE{
     string getWindowState(void);
     // string getWindowLeftState(void);
     // string getWindowRightState(void);
+    string getTrunkState(void);
     string getCentralLockState(void);
     string getDate(void);
     uint8_t getDateCommand(void);
