@@ -6,6 +6,8 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
+#include <sys/time.h>
+#include <CharacteristicCallback.hpp>
 
 #include <FreeRTOS.h>
 #include <string>
@@ -15,32 +17,34 @@
 
 using namespace std;
 
-//Manufacturer service and characteristics
-#define MANUFACTURER_SERVICE_UUID "0000180a-0000-1000-8000-00805F9B34FB"
-#define MANUFACTURER_NAME_UUID "00002a29-0000-1000-8000-00805F9B34FB"
-#define MANUFACTURER_NAME "Teodor Stanishev"
+
+// //Car service and characteristics
+#define CAR_SERVICE_UUID "ca227c6b-d187-4aaf-b330-37144d84b02c"
+
+#define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
+#define CHARACRERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b" 
 //
 
-//Car service and characteristics
-#define CAR_SERVICE_UUID "ca227c6b-d187-4aaf-b330-37144d84b02c"
-#define WINDOW_LEFT_CHARACTERISTIC_UUID "3ff8860e-72ca-4a25-9c4e-99c7d3b08e9b"
-#define WINDOW_RIGHT_CHARACTERISTIC_UUID "96cc6576-b9b0-443b-b8e6-546bbd20d374"
-#define IGNITION_CHARACTERISTIC_UUID "4ad1bbf1-b3e6-4239-a3bb-520624ee1329"
-#define LOCK_CONTROL_CHARACTERISTIC_UUID "aface04c-7963-43ec-a172-bedeb1b49570"
-#define CLOCK_CHARACTERISTIC_UUID "6bbdd85f-c398-4075-abad-62d3ba40916a"
-
-#define LOG_CHARACTERISTIC_UUID "9c64b5fd-9d4c-49fe-99b0-b9cf4f091026"
-#define PIN_CODE_CHARACRERISTIC_UUID "def231dc-07d4-4a71-b735-811e07d44c07" 
+//GPIO pins
+#define WINDOW_UP_PIN      (uint8_t)4
+#define WINDOW_DOWN_PIN    (uint8_t)5
+// #define WINDOW_RIGHT_UP_PIN    (uint8_t)12
+// #define WINDOW_RIGHT_DOWN_PIN   (uint8_t)14
+#define OPEN_TRUNK_PIN          14
+#define IGNITION_PIN            15
+// #define CENTRAL_LOCKING_LOCK_PIN    16
+#define CENTRAL_LOCKING_TRIGG_PIN  12
+#define STARTER_MOTOR_PIN       17
 //
 
 //Constants
-#define WINDOW_LEFT 0
-#define WINDOW_RIGHT 1
+#define SET_TIME_ON_RTC 1
+#define WINDOW_RIGHT    2
+#define IGNITION        3
+#define CENTRAL_LOCK    4
+#define CLOCK           5
+#define PASSWORD        6
 
-// TODO make it a variable
-// #define PIN_CODE "pticata"
-
-//
 
 class CharacteristicCallback;
 class BLE;
@@ -48,73 +52,81 @@ class ServerCallbacks;
 
 
 
+
 class BLE{
     private:
     BLEServer *pServer;
-    BLEService *manufacturerService;
-    BLECharacteristic *manufacturerName;
     BLEService *carService;
-    BLECharacteristic *windows[2];
-    BLECharacteristic *ignition;
-    BLECharacteristic *lockControl;
-    BLECharacteristic *rtc_clock;
-
-    
-    //CharacteristicCallback characteristic (part of the car service)
-    BLECharacteristic *logCharacteristic;
-    CharacteristicCallback *pCallback;
-    //
-
+    BLECharacteristic *pCharacteristic;
+    BLECharacteristic *pPassword;
     BLEAdvertising *pAdvertising;
 
-    std::string deviceName = "Smart Car";
-    
-    //TODO 
-    //Write this to flash memory
-    string _log = "";
-    //
+    CharacteristicCallback *pCallback;
 
+    string deviceName = "Smart Car";
+
+    uint8_t pins[5] = {WINDOW_UP_PIN , WINDOW_DOWN_PIN ,
+    IGNITION_PIN , CENTRAL_LOCKING_TRIGG_PIN , STARTER_MOTOR_PIN , OPEN_TRUNK_PIN};
+
+    public:
     //Defailt state
     uint8_t STANDARD = 0x50;
     //
     //Window commands
-    uint8_t WINDOW_LEFT_UP = 0x51;
-    uint8_t WINDOW_LEFT_DOWN = 0x52;
-    uint8_t WINDOW_RIGHT_UP = 0x54;
-    uint8_t WINDOW_RIGHT_DOWN = 0x55;
+    uint8_t WINDOW_UP = 0x51;
+    uint8_t WINDOW_DOWN = 0x52;
+    // uint8_t WINDOW_RIGHT_UP = 0x54;
+    // uint8_t WINDOW_RIGHT_DOWN = 0x55;
     //
     //Ignition
     uint8_t IGNITION_ON = 0x60;
     uint8_t IGNITION_OFF = STANDARD;
-    uint8_t IGNITION_START = 0x62;
+    uint8_t IGNITION_STARTER_ON = 0x62;
+    uint8_t IGNITION_STARTER_OFF = 0x63;
     //Lock/unlock
     uint8_t LOCK = STANDARD;
-    uint8_t UNLOCK = 0x81;
+    uint8_t UNLOCK = 0x75;
+    //
+    //Open trunk
+    uint8_t OPEN_TRUNK = 0x77;
     //
 
-    public:
     bool isConnected = false;
     
     struct{
-        BLECharacteristic *characteristic;
-        string PIN_CODE = "pticata";
+        string PIN_CODE = "elsys";
         byte failedEntries = 0;
         byte MAX_FAILED_ENTRIES = 3;
     }pin;
+
 
     BLE();
     BLE(std::string deviceName);
 
     void begin();
+    void initializePins();
 
     void readLog();
     void writeLog(string s);
     //Debug
     vector<string> getValues();
+
     string getPinCode();
     void clearPinCode();
+    string getIgnitionState(void);
+    // string getWindowsStates(void);
+    string getWindowState(void);
+    // string getWindowLeftState(void);
+    // string getWindowRightState(void);
+    string getTrunkState(void);
+    string getCentralLockState(void);
+    string getDate(void);
+    uint8_t getDateCommand(void);
+    void setDateCommand(string c);
 
-    void setDefaultAll();
+    BLEServer* getServer();
+    BLECharacteristic* getMainCharacteristic();
+    void setDefault();
     void notifyAll();
 
     static void blockedTimeout(void *p);
@@ -122,37 +134,6 @@ class BLE{
 
 };
 
-
-class CharacteristicCallback : public BLECharacteristicCallbacks{
-    private:
-    std::time_t t = std::time(nullptr);
-    //BLE car reference
-    BLE *c;
-
-  public:
-    CharacteristicCallback(BLE *c)
-    {
-        this->c = c;
-    }
-    void onRead(BLECharacteristic *pCharacteristic);
-    void onWrite(BLECharacteristic *pCharacteristic);
-    
-    std::string string_to_hex(const std::string &input)
-    {
-        static const char *const lut = "0123456789ABCDEF";
-        size_t len = input.length();
-
-        std::string output;
-        output.reserve(2 * len);
-        for (size_t i = 0; i < len; ++i)
-        {
-            const unsigned char c = input[i];
-            output.push_back(lut[c >> 4]);
-            output.push_back(lut[c & 15]);
-        }
-        return output;
-    }
-};
 
 class ServerCallbacks : public BLEServerCallbacks
 {
@@ -176,5 +157,4 @@ class ServerCallbacks : public BLEServerCallbacks
         Serial.println(c->isConnected);
     }
 };
-
 #endif

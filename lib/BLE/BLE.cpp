@@ -8,69 +8,49 @@ BLE::BLE(std::string deviceName)
     this->deviceName = deviceName;
 }
 
+/**
+ * @brief Used to initialize the BLE with all the services and characteristic
+ */
 void BLE::begin()
 {
-    //start the ble device with name "BLE"
+    BLE::initializePins();
+    //Start the ble device with name "BLE"
     BLEDevice::init(deviceName);
-    //Change power level for RELEASE
+    //TODO Change power level for RELEASE
     BLEDevice::setPower(ESP_PWR_LVL_P7);
-    //
+
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks(this));
+    
     pCallback = new CharacteristicCallback(this);
 
-    manufacturerService = pServer->createService(MANUFACTURER_SERVICE_UUID);
-    manufacturerName = manufacturerService->createCharacteristic(MANUFACTURER_NAME_UUID, BLECharacteristic::PROPERTY_READ);
-
-    //Create the service
+    //Create the Car service
     carService = pServer->createService(CAR_SERVICE_UUID);
-    //Create the chararteristics for that service
-    //WINDOW LEFT
-    windows[WINDOW_LEFT] = carService->createCharacteristic(WINDOW_LEFT_CHARACTERISTIC_UUID,
+    //TEST max char value
+    pCharacteristic = carService->createCharacteristic(CHARACRERISTIC_UUID,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
-    windows[WINDOW_LEFT]->addDescriptor(new BLE2902());
-    windows[WINDOW_LEFT]->setCallbacks(pCallback);
-    //WINDOW RIGHT
-    windows[WINDOW_RIGHT] = carService->createCharacteristic(WINDOW_RIGHT_CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
-    windows[WINDOW_RIGHT]->addDescriptor(new BLE2902());
-    windows[WINDOW_RIGHT]->setCallbacks(pCallback);
-    //IGNITION
-    ignition = carService->createCharacteristic(IGNITION_CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
-    ignition->addDescriptor(new BLE2902());
-    ignition->setCallbacks(pCallback);
-    //LOCK CONTROL
-    lockControl = carService->createCharacteristic(LOCK_CONTROL_CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_NOTIFY);
-    lockControl->addDescriptor(new BLE2902());
-    lockControl->setCallbacks(pCallback);
-    //
-    //CLOCK
-    rtc_clock = carService->createCharacteristic(CLOCK_CHARACTERISTIC_UUID,
+    pCharacteristic->addDescriptor(new BLE2902());
+    pCharacteristic->setCallbacks(pCallback);
+
+    //TODO change the permission for RELEASE
+    pPassword = carService->createCharacteristic(PIN_CODE_CHARACRERISTIC_UUID ,
     BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
-    rtc_clock->addDescriptor(new BLE2902());
-    rtc_clock->setCallbacks(pCallback);
+    pPassword->addDescriptor(new BLE2902());
+    pPassword->setCallbacks(pCallback);
+
+
+    // BLE::setDefault();
+
+    //Initial setup
+    uint8_t commands[] = {
+        STANDARD , STANDARD , STANDARD , STANDARD
+    };
+    string dateBuff(commands , commands + sizeof(commands));
+    dateBuff+="00000000000"; //11 elements
+    pCharacteristic->setValue(dateBuff);
     //
-    //PIN CODE
-    pin.characteristic = carService->createCharacteristic(PIN_CODE_CHARACRERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
-    pin.characteristic->addDescriptor(new BLE2902());
-    pin.characteristic->setCallbacks(pCallback);
+    
     //
-
-    BLE::logCharacteristic = carService->createCharacteristic(LOG_CHARACTERISTIC_UUID,
-    BLECharacteristic::PROPERTY_READ);
-    logCharacteristic->addDescriptor(new BLE2902());
-    logCharacteristic->setCallbacks(pCallback);
-
-    //Set the default value
-    manufacturerName->setValue(MANUFACTURER_NAME);
-    manufacturerService->start();
-
-    //set default value for the windows and start the service
-    BLE::setDefaultAll();
-
     carService->start();
     //
 
@@ -79,94 +59,104 @@ void BLE::begin()
     pAdvertising->start();
 }
 
-void BLE::writeLog(string s)
-{
-    _log += s + "\n";
-    Serial.print(_log.data());
+/**
+ * @brief Initializes the pins , calls pinMode() on every GPIO that is going to be used
+ */ 
+void BLE::initializePins(){
 
-    //TODO
-    logCharacteristic->setValue(_log);
+    for(auto pin : pins){
+        pinMode(pin , OUTPUT);
+        digitalWrite(pin , LOW);
+    }
 }
-void BLE::readLog()
-{
-    Serial.println("READ LOG");
+/**
+ * @brief Returns the current Ignition state
+ * @return string
+ */
+string BLE::getIgnitionState(){
+    return pCharacteristic->getValue().substr(0,1);
 }
-
-//DEBUG
-vector<string> BLE::getValues()
-{
-    vector<string> buff;
-    buff.push_back(windows[WINDOW_LEFT]->getValue());
-    buff.push_back(windows[WINDOW_RIGHT]->getValue());
-
-    return buff;
+/**
+ * @brief Returns the current Window state
+ * @return string
+ */
+string BLE::getWindowState(){
+    return pCharacteristic->getValue().substr(1,1);
 }
+/**
+ * @brief Returns the current Lock State
+ * @return string
+ */
+string BLE::getCentralLockState(){
+    return pCharacteristic->getValue().substr(2,1);
+}
+/**
+ * @brief Returns the current Trunk state
+ * @return string
+ */
+string BLE::getTrunkState(){
+    return pCharacteristic->getValue().substr(3,1);
+}
+/**
+ * @brief Returns a string representation of the seconds since Epoch
+ * @return char[10] seconds
+ */
+string BLE::getDate(){
+    return pCharacteristic->getValue().substr(4,10);
+}
+/**
+ * @brief Returns the current password entry from the BLE characteristic
+ * @return string
+ */
 string BLE::getPinCode()
 {
-    return pin.characteristic->getValue();
+    return pPassword->getValue();
 }
+/**
+ * @brief Returns the command for the Date/Time
+ * @return uint8_t command
+ */
+uint8_t BLE::getDateCommand(){
+    return atoi(pCharacteristic->getValue().substr(14,1).c_str());
+}
+/**
+ * @brief Used to clear the current password entry
+ */
 void BLE::clearPinCode()
 {
-    pin.characteristic->setValue("0");
+    pPassword->setValue("0");
 }
-
-void BLE::setDefaultAll()
+/**
+ * @brief Set the default states 
+ */
+void BLE::setDefault()
 {
-    windows[WINDOW_LEFT]->setValue(&STANDARD, sizeof(&STANDARD));
-    windows[WINDOW_RIGHT]->setValue(&STANDARD, sizeof(&STANDARD));
-    ignition->setValue(&STANDARD, sizeof(&STANDARD));
-    lockControl->setValue(&LOCK , sizeof(&LOCK));
+    uint8_t data[] = {
+        STANDARD , STANDARD , STANDARD , STANDARD
+    };
+    string buff(data , data + sizeof(data));
+    buff+=BLE::getDate();
+    pCharacteristic->setValue(buff);
+    BLE::clearPinCode();
 }
+void BLE::setDateCommand(string c){
+    string buff = pCharacteristic->getValue().replace(10,1,c);
+    pCharacteristic->setValue(buff);
+}
+/**
+ * @brief Overloaded function to notify the BLE client for all the states
+ */
 void BLE::notifyAll()
 {
     if (isConnected)
     {
-        windows[WINDOW_LEFT]->notify();
-        windows[WINDOW_RIGHT]->notify();
-        ignition->notify();
-        lockControl->notify();
+        pCharacteristic->notify();
     }
 }
 
-void BLE::blockedTimeout(void *p)
-{
-    vTaskDelay(10000);
+BLEServer* BLE::getServer(){
+    return pServer;
 }
-
-void BLE::block()
-{
-    pServer->disconnectClient();
-    // xTaskCreate(blockedTimeout, "Blocked timeout", 1024, (void *)1, tskIDLE_PRIORITY, NULL);
-}
-
-void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic)
-{
-}
-void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic)
-{
-    string buffUUID = pCharacteristic->getUUID().toString();
-    // if (buffUUID == PIN_CODE_CHARACRERISTIC_UUID)
-    // {
-        if (c->getPinCode() != c->pin.PIN_CODE)
-        {
-            c->setDefaultAll();
-            c->pin.failedEntries++;
-            Serial.print("Failed entries: ");
-            Serial.println(c->pin.failedEntries);
-            c->block();
-
-        }
-        else if (c->getPinCode() == c->pin.PIN_CODE)
-        {
-            Serial.println("Password Correct!");
-            //Clear the failed attempts
-            c->pin.failedEntries = 0;
-            //
-        }
-    // }
-    if (c->pin.failedEntries >= c->pin.MAX_FAILED_ENTRIES)
-        c->block();
-
-    Serial.print(string_to_hex(pCharacteristic->getValue()).data());
-    Serial.println();
+BLECharacteristic* BLE::getMainCharacteristic(){
+    return pCharacteristic;
 }

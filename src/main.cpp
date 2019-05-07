@@ -1,20 +1,21 @@
 #include <Arduino.h>
-#include <WiFi.h>
 #include <BLE.hpp>
 
+//Global reference of the BLE class
 BLE car;
 
 void setup(){
+  //Initialise the Serial monitor at the specified baud rate
   Serial.begin(115200);
-  WiFi.mode(WIFI_OFF);
+  // pinMode(4 , OUTPUT);
+  // pinMode(5 , OUTPUT);
+
+  //Initialise the main BLE class
   car.begin();
 }
 
 void loop(){
-  // for(auto v : car.getValues()){
-  //   Serial.println(v.data());
-  // }
+  //Notify the current values if there are clients connected
   car.notifyAll();
-
-  delay(500);
+  delay(1000);
 }
