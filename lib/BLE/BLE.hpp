@@ -28,11 +28,8 @@ using namespace std;
 //GPIO pins
 #define WINDOW_UP_PIN      (uint8_t)4
 #define WINDOW_DOWN_PIN    (uint8_t)5
-// #define WINDOW_RIGHT_UP_PIN    (uint8_t)12
-// #define WINDOW_RIGHT_DOWN_PIN   (uint8_t)14
 #define OPEN_TRUNK_PIN          14
 #define IGNITION_PIN            15
-// #define CENTRAL_LOCKING_LOCK_PIN    16
 #define CENTRAL_LOCKING_TRIGG_PIN  12
 #define STARTER_MOTOR_PIN       17
 //
