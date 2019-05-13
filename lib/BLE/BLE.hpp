@@ -6,11 +6,12 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
-#include <sys/time.h>
 #include <CharacteristicCallback.hpp>
-
+#include <ServerCallbacks.hpp>
+#include <sys/time.h>
 #include <FreeRTOS.h>
 #include <string>
+#include <sstream>
 #include <ctime>
 #include <algorithm>
 #include <vector>
@@ -26,31 +27,24 @@ using namespace std;
 //
 
 //GPIO pins
-#define WINDOW_UP_PIN      (uint8_t)4
-#define WINDOW_DOWN_PIN    (uint8_t)5
-// #define WINDOW_RIGHT_UP_PIN    (uint8_t)12
-// #define WINDOW_RIGHT_DOWN_PIN   (uint8_t)14
-#define OPEN_TRUNK_PIN          14
-#define IGNITION_PIN            15
-// #define CENTRAL_LOCKING_LOCK_PIN    16
-#define CENTRAL_LOCKING_TRIGG_PIN  12
-#define STARTER_MOTOR_PIN       17
+#define WINDOW_UP_PIN               (uint8_t)4
+#define WINDOW_DOWN_PIN             (uint8_t)5
+#define OPEN_TRUNK_PIN              (uint8_t)14
+#define IGNITION_PIN                (uint8_t)15
+#define CENTRAL_LOCKING_TRIGG_PIN   (uint8_t)12
+#define STARTER_MOTOR_PIN           (uint8_t)17
 //
 
 //Constants
-#define SET_TIME_ON_RTC 1
-#define WINDOW_RIGHT    2
-#define IGNITION        3
-#define CENTRAL_LOCK    4
-#define CLOCK           5
-#define PASSWORD        6
+#define DEFAULT_DATE_COMMAND    0
+#define SET_TIME_ON_RTC         1
+// #define IGNITION                "2'
+#define CENTRAL_LOCK            3
 
 
 class CharacteristicCallback;
 class BLE;
 class ServerCallbacks;
-
-
 
 
 class BLE{
@@ -65,7 +59,7 @@ class BLE{
 
     string deviceName = "Smart Car";
 
-    uint8_t pins[5] = {WINDOW_UP_PIN , WINDOW_DOWN_PIN ,
+    uint8_t pins[6] = {WINDOW_UP_PIN , WINDOW_DOWN_PIN ,
     IGNITION_PIN , CENTRAL_LOCKING_TRIGG_PIN , STARTER_MOTOR_PIN , OPEN_TRUNK_PIN};
 
     public:
@@ -75,9 +69,6 @@ class BLE{
     //Window commands
     uint8_t WINDOW_UP = 0x51;
     uint8_t WINDOW_DOWN = 0x52;
-    // uint8_t WINDOW_RIGHT_UP = 0x54;
-    // uint8_t WINDOW_RIGHT_DOWN = 0x55;
-    //
     //Ignition
     uint8_t IGNITION_ON = 0x60;
     uint8_t IGNITION_OFF = STANDARD;
@@ -92,6 +83,7 @@ class BLE{
     //
 
     bool isConnected = false;
+    bool isPasswordCorrect = false;
     
     struct{
         string PIN_CODE = "elsys";
@@ -114,47 +106,32 @@ class BLE{
     string getPinCode();
     void clearPinCode();
     string getIgnitionState(void);
-    // string getWindowsStates(void);
     string getWindowState(void);
-    // string getWindowLeftState(void);
-    // string getWindowRightState(void);
     string getTrunkState(void);
     string getCentralLockState(void);
     string getDate(void);
     uint8_t getDateCommand(void);
     void setDateCommand(string c);
+    void setDate(string d);
 
     BLEServer* getServer();
     BLECharacteristic* getMainCharacteristic();
     void setDefault();
     void notifyAll();
 
-    static void blockedTimeout(void *p);
-    void block();
+    //Method that are used for the main actions of the Smart car
+    void triggerCentralLocking(void);
+    void windowsUp(void);
+    void windowsDown(void);
+    void triggerTrunk(void);
+    void ignitionOn(void);
+    void ignitionOff(void);
+    void engineCrankOn(void);
+    void engineCrankOff(void);
+    void startEngine(void);
+    //
 
 };
 
 
-class ServerCallbacks : public BLEServerCallbacks
-{
-  public:
-    BLE *c;
-    ServerCallbacks(BLE *c)
-    {
-        this->c = c;
-    }
-    void onConnect(BLEServer *pServer)
-    {
-        c->isConnected = true;
-        Serial.println(c->isConnected);
-    }
-    void onDisconnect(BLEServer *pServer)
-    {
-        c->isConnected = false;
-        //Clear the current PIN_CODE
-        c->clearPinCode();
-        //
-        Serial.println(c->isConnected);
-    }
-};
 #endif
