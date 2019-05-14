@@ -1,8 +1,8 @@
-#include "CharacteristicCallback.hpp"
+#include "CharacteristicCallbacks.hpp"
 
 using namespace std;
 
-void CharacteristicCallback::gpioStateHandler(){
+void CharacteristicCallbacks::gpioStateHandler(){
     //Window up
     if(c->getWindowState().data()[0] == c->WINDOW_UP){
         digitalWrite(WINDOW_UP_PIN , HIGH);
@@ -42,7 +42,7 @@ void CharacteristicCallback::gpioStateHandler(){
     }
 }
 
-void CharacteristicCallback::passwordHandler(){
+void CharacteristicCallbacks::passwordHandler(){
     string pass = c->getPinCode();
     BLEServer *pServer = c->getServer();
 
@@ -66,7 +66,7 @@ void CharacteristicCallback::passwordHandler(){
 }
 
 
-void CharacteristicCallback::dateHandler(){
+void CharacteristicCallbacks::dateHandler(){
     uint8_t param = c->getDateCommand();
     string _time = c->getDate();
     if(param == SET_TIME_ON_RTC){
@@ -82,32 +82,32 @@ void CharacteristicCallback::dateHandler(){
     }
 }
 
-void CharacteristicCallback::eventHandler(){
+void CharacteristicCallbacks::eventHandler(){
     uint8_t param = c->getDateCommand();
     if(param == CENTRAL_LOCK){
         Serial.println("ARE KYREC");
         TaskHandle_t xHandle = NULL;
-        xTaskCreate(CharacteristicCallback::secondThread , "ASYNC_TASK" , 1024 , NULL , tskIDLE_PRIORITY , &xHandle);
+        xTaskCreate(CharacteristicCallbacks::secondThread , "ASYNC_TASK" , 1024 , NULL , tskIDLE_PRIORITY , &xHandle);
     }
     
 }
 
-void CharacteristicCallback::secondThread(void *p){
+void CharacteristicCallbacks::secondThread(void *p){
     while(true){
         Serial.println("AZ SUM KUREC");
     }
 }
 
 
-void CharacteristicCallback::onRead(BLECharacteristic *pCharacteristic){
+void CharacteristicCallbacks::onRead(BLECharacteristic *pCharacteristic){
     Serial.println("Reading value");
 }
-void CharacteristicCallback::onWrite(BLECharacteristic *pCharacteristic){
-    CharacteristicCallback::passwordHandler();
+void CharacteristicCallbacks::onWrite(BLECharacteristic *pCharacteristic){
+    CharacteristicCallbacks::passwordHandler();
     Serial.println("Writing values: " + String(pCharacteristic->getValue().data()));
     dateHandler();
-    CharacteristicCallback::gpioStateHandler();
-    CharacteristicCallback::eventHandler();
+    CharacteristicCallbacks::gpioStateHandler();
+    CharacteristicCallbacks::eventHandler();
 
     if(pCharacteristic->getUUID().toString() == PIN_CODE_CHARACRERISTIC_UUID){
         Serial.println("Password is: " + String(pCharacteristic->getValue().data()));

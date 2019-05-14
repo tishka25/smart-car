@@ -9,6 +9,7 @@
 #include <BLEServer.h>
 #include <BLE2902.h>
 #include <sys/time.h>
+#include <ServerCallbacks.hpp>
 
 
 #include <FreeRTOS.h>
@@ -20,7 +21,7 @@ class BLE;
 
 using namespace std;
 
-class CharacteristicCallback : public BLECharacteristicCallbacks{
+class CharacteristicCallbacks : public BLECharacteristicCallbacks{
     private:
     //BLE car reference
     BLE *c;
@@ -28,7 +29,7 @@ class CharacteristicCallback : public BLECharacteristicCallbacks{
 
 
   public:
-    CharacteristicCallback(BLE *c)
+    CharacteristicCallbacks(BLE *c)
     {
         this->c = c;
     }
@@ -38,6 +39,9 @@ class CharacteristicCallback : public BLECharacteristicCallbacks{
     void gpioStateHandler();
     void passwordHandler();
     void dateHandler();
+    void eventHandler(void);
+
+    static void secondThread(void *p);
 
     std::string string_to_hex(const std::string &input)
     {

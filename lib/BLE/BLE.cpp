@@ -22,7 +22,7 @@ void BLE::begin()
     pServer = BLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks(this));
 
-    pCallback = new CharacteristicCallback(this);
+    pCallback = new CharacteristicCallbacks(this);
 
     //Create the Car service
     carService = pServer->createService(CAR_SERVICE_UUID);

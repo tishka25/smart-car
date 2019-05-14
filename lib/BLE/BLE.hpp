@@ -6,7 +6,7 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
-#include <CharacteristicCallback.hpp>
+#include <CharacteristicCallbacks.hpp>
 #include <ServerCallbacks.hpp>
 #include <sys/time.h>
 #include <FreeRTOS.h>
@@ -42,7 +42,7 @@ using namespace std;
 #define CENTRAL_LOCK            3
 
 
-class CharacteristicCallback;
+class CharacteristicCallbacks;
 class BLE;
 class ServerCallbacks;
 
@@ -55,7 +55,7 @@ class BLE{
     BLECharacteristic *pPassword;
     BLEAdvertising *pAdvertising;
 
-    CharacteristicCallback *pCallback;
+    CharacteristicCallbacks *pCallback;
 
     string deviceName = "Smart Car";
 
