@@ -112,8 +112,7 @@ string BLE::getDate()
  * @brief Returns the current password entry from the BLE characteristic
  * @return string
  */
-string BLE::getPinCode()
-{
+string BLE::getPinCode(){
     return pPassword->getValue();
 }
 /**
@@ -125,17 +124,15 @@ uint8_t BLE::getDateCommand()
     return atoi(pCharacteristic->getValue().substr(14, 1).c_str());
 }
 /**
- * @brief Used to clear the current password entry
+ * @brief Used to clear the current password entry after a connection 
  */
-void BLE::clearPinCode()
-{
+void BLE::clearPinCode(){
     pPassword->setValue("0");
 }
 /**
  * @brief Set the default states 
  */
-void BLE::setDefault()
-{
+void BLE::setDefault(){
     uint8_t data[] = {
         STANDARD, STANDARD, STANDARD, STANDARD};
     string buff(data, data + sizeof(data));
@@ -165,8 +162,7 @@ void BLE::setDate(string d){
 /**
  * @brief Overloaded method to notify the BLE client for all the states
  */
-void BLE::notifyAll()
-{
+void BLE::notifyAll(){
     if (isConnected)
     {
         time_t currTime = time(nullptr);
